@@ -3,6 +3,8 @@
 
 /* ----- setup ------ */
 
+let distance;
+
 // sets up a bodystream with configuration object
 const bodies = new BodyStream ({
       posenet: posenet,
@@ -15,7 +17,7 @@ let body
 
 bodies.addEventListener('bodiesDetected', (e) => {
     body = e.detail.bodies.getBodyAt(0)
-    const distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist))
+    distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist))
     document.getElementById('output').innerText = `Distance between wrists: ${distance}`
     body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist)
 })
@@ -25,6 +27,21 @@ let video = document.getElementById("video");
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
+let randomX = Math.random() * Math.floor(640);
+let randomY = Math.random() * Math.floor(480);
+let rectangleWidth = 100; 
+let rectangleHeight = 100;
+
+function drawHitBox() {
+    ctx.beginPath();
+    ctx.rect(randomX,randomY,rectangleWidth, rectangleHeight);
+    ctx.fillStyle = 'purple';
+    ctx.fill()
+
+
+
+    if((rightWrist.position.x >= rectangleWidth) || (rightWrist.position.x >= rectangleWidth)){
+}
 // draw the video, nose and eyes into the canvas
 function drawCameraIntoCanvas() {
 
@@ -47,13 +64,22 @@ function drawCameraIntoCanvas() {
         ctx.arc(rightWrist.position.x, rightWrist.position.y, 10, 0, 2 * Math.PI);
         ctx.fillStyle = 'white'
         ctx.fill()
+
+        //draw the hit box
+        drawHitBox();
     }
     requestAnimationFrame(drawCameraIntoCanvas)
 }
 
 /* ----- run ------ */
+//if ()
 
 // start body detecting 
 bodies.start()
+/*while(hand is not in the hit box){
+    setTimeout(function, 3000);
+}*/
+
+
 // draw video and body parts into canvas continously 
 drawCameraIntoCanvas();
