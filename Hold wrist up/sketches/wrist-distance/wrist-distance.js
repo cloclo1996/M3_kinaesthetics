@@ -12,9 +12,11 @@ let HitBoxArray = [];
 let rectangleWidth = 100; 
 let rectangleHeight = 100;
 
+let body;
+
 // get right/left wrist
-const leftWrist = body.getBodyPart(bodyParts.leftWrist);
-const rightWrist = body.getBodyPart(bodyParts.rightWrist);
+//let leftWrist = body.getBodyPart(bodyParts.leftWrist);
+//let rightWrist = body.getBodyPart(bodyParts.rightWrist);
 
 //circle's X,Y and radius
 let randomX = Math.random() * Math.floor(640);
@@ -24,7 +26,25 @@ let radius = 10;
 //distance between wrists
 let distance;
 
+// sets up a bodystream with configuration object
+const bodies = new BodyStream ({
+    posenet: posenet,
+    architecture: modelArchitecture.MobileNetV1, 
+    detectionType: detectionType.singleBody, 
+    videoElement: document.getElementById('video'), 
+    samplingRate: 250})
+  
 
+
+bodies.addEventListener('bodiesDetected', (e) => {
+  body = e.detail.bodies.getBodyAt(0)
+  distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist))
+  document.getElementById('output').innerText = `Distance between wrists: ${distance}`
+  body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist)
+})
+
+// start body detecting 
+bodies.start();
 
 //============================================
 //                 CLASSES
@@ -46,6 +66,9 @@ class Hitbox{
     }
 
     update(){
+        bodies.start();
+        const leftWrist = body.getBodyPart(bodyParts.leftWrist);
+        const rightWrist = body.getBodyPart(bodyParts.rightWrist);
         if(//left wrist
             (this._x < leftWrist.position.x) || (leftWrist.position.x < (this._x + this._width)) || (this._y < leftWrist.position.y) || (leftWrist.position.y < (this._y + this._height)) ||
             //right wrist
@@ -83,23 +106,6 @@ class Hitbox{
 //                 ML PART
 //==============================================
 
-// sets up a bodystream with configuration object
-const bodies = new BodyStream ({
-      posenet: posenet,
-      architecture: modelArchitecture.MobileNetV1, 
-      detectionType: detectionType.singleBody, 
-      videoElement: document.getElementById('video'), 
-      samplingRate: 250})
-    
-let body
-
-bodies.addEventListener('bodiesDetected', (e) => {
-    body = e.detail.bodies.getBodyAt(0)
-    distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist))
-    document.getElementById('output').innerText = `Distance between wrists: ${distance}`
-    body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist)
-})
-
 // draw the video, nose and eyes into the canvas
 function drawCameraIntoCanvas() {
 
@@ -114,8 +120,8 @@ function drawCameraIntoCanvas() {
     
     if (body) {
         // draw circle for left and right wrist
-        const leftWrist = body.getBodyPart(bodyParts.leftWrist);
-        const rightWrist = body.getBodyPart(bodyParts.rightWrist);
+        //const leftWrist = body.getBodyPart(bodyParts.leftWrist);
+        //const rightWrist = body.getBodyPart(bodyParts.rightWrist);
 
         // draw left wrist
         ctx.beginPath();
@@ -145,10 +151,6 @@ function init(){
 //===========================================
 
 init();
-
-
-// start body detecting 
-bodies.start();
 
 
 // draw video and body parts into canvas continously 
