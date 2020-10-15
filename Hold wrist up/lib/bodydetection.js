@@ -87,6 +87,7 @@ class BodyStream extends EventTarget {
 
     }
 }
+
 // Represents bodydata of one or more bodies found in one frame
 
 class Bodies {
@@ -270,7 +271,7 @@ class BodyDetection extends EventTarget {
 
     async run () {
         if ( this.canRun && this.doRun )  {
-            this.canRun = false // cannot run again until last poses have been retreived
+            this.canRun = false // cannot run again until last poses have been retrieved
 
             let estimate
             if (this.detectionType = detectionType.multipleBodies) 

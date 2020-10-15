@@ -14,7 +14,7 @@ let rectangleHeight = 100;
 
 
 // get right/left wrist
-let leftWrist, rightWrist, body;
+//let body;
 
 //circle's X,Y and radius
 let randomX = Math.random() * Math.floor(640);
@@ -22,29 +22,9 @@ let randomY = Math.random() * Math.floor(480);
 let radius = 10;
 
 //distance between wrists
-let distance;
+let leftWrist, rightWrist,body;
 
-// sets up a bodystream with configuration object
-const bodies = new BodyStream ({
-    posenet: posenet,
-    architecture: modelArchitecture.MobileNetV1, 
-    detectionType: detectionType.singleBody, 
-    videoElement: document.getElementById('video'), 
-    samplingRate: 100})
-  
-
-//this is fired when posenet detects a pose
-bodies.addEventListener('bodiesDetected', (e) => {
-  body = e.detail.bodies.getBodyAt(0)
-  let leftWrist = Math.round(body.getBodyPart(leftWrist));
-  let rightWrist = Math.round(body.getBodyPart(rightWrist));
-  document.getElementById('output').innerText = `leftWrist: ${leftWrist.position.x}, ${leftWrist.position.y}`;
-  //body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist)
-})
-
-// start body detecting 
-bodies.start();
-
+     
 //============================================
 //                 CLASSES
 //============================================
@@ -57,6 +37,7 @@ class Hitbox{
     this._height = height;
     this._color = color;
     
+    
     //When the wrist hits the hit box
     this._isOver = false;
 
@@ -65,13 +46,14 @@ class Hitbox{
     }
 
     update(){
-        bodies.start();
-        leftWrist = body.getBodyPart(bodyParts.leftWrist);
-        rightWrist = body.getBodyPart(bodyParts.rightWrist);
+        var leftWristX = wrists.leftWristX;
+        var leftWristY = wrists.leftWristY;
+        var rightWristX = wrists.rightWristX;
+        var rightWristY = wrists.rightWristY;
         if(//left wrist
-            (this._x < leftWrist.position.x) || (leftWrist.position.x < (this._x + this._width)) || (this._y < leftWrist.position.y) || (leftWrist.position.y < (this._y + this._height)) ||
+            (this._x < leftWristX) || (leftWristX < (this._x + this._width)) || (this._y < leftWristY) || (leftWristY < (this._y + this._height)) ||
             //right wrist
-            (this._x < rightWrist.position.x) || (rightWrist.position.x < (this._x + this._width)) || (this._y < rightWrist.position.y) || (rightWrist.position.y < (this._y + this._height))) {
+            (this._x < rightWristX) || (rightWristX < (this._x + this._width)) || (this._y < rightWristY) || (rightWristY < (this._y + this._height))) {
                 this._isOver = true;
          } else {
              this._isOver = false;
@@ -98,22 +80,48 @@ class Hitbox{
 		}
     }
 
-    // draw the video, nose and eyes into the canvas
-    drawCameraIntoCanvas() {
+
+
+}
+
+//==============================================
+//                 ML PART
+//==============================================
+
+// sets up a bodystream with configuration object
+const bodies = new BodyStream ({
+    posenet: posenet,
+    architecture: modelArchitecture.MobileNetV1, 
+    detectionType: detectionType.singleBody, 
+    videoElement: document.getElementById('video'), 
+    samplingRate: 100})
+
+
+//save function for event listener onto a variable.
+var wrists = (e) => {
+    body = e.detail.getBodyAt(0)
+    leftWrist = body.getBodyPart(bodyParts.leftWrist);
+    rightWrist = body.getBodyPart(bodyParts.rightWrist);
+    document.getElementById('output').innerText = `Left Wrist: ${Math.round(leftWrist.position.x)}, ${Math.round(leftWrist.position.y)}` + ` Right Wrist: ${Math.round(rightWrist.position.x)}, ${Math.round(rightWrist.position.y)}`;
+
+  //this function will also be used to call specific variables elsewhere in the code  
+  return {leftWristX: leftWrist.position.x,
+    leftWristY: leftWrist.position.y,
+    rightWristX: rightWrist.position.x,
+    rightWristY: rightWrist.position.y
+  };
+}
+
+//this is fired when posenet detects a pose
+bodies.addEventListener('bodiesDetected', wrists);
+
+// draw the video, nose and eyes into the canvas
+function drawCameraIntoCanvas() {
 
     // draw the video element into the canvas
     ctx.drawImage(video, 0, 0, video.width, video.height);
-
-    //run update() and draw() for each array element
-    for (let i = 0; i < HitBoxArray.length; i++){
-		HitBoxArray[i].update();
-		HitBoxArray[i].drawHitBox();		
-	}
     
     if (body) {
-        // draw circle for left and right wrist
-        const leftWrist = body.getBodyPart(bodyParts.leftWrist);
-        const rightWrist = body.getBodyPart(bodyParts.rightWrist);
 
         // draw left wrist
         ctx.beginPath();
@@ -130,19 +138,16 @@ class Hitbox{
     requestAnimationFrame(drawCameraIntoCanvas());
 }
 
-}
-
-
-
-//==============================================
-//                 ML PART
-//==============================================
-
-
 function init(){
     //create a hitbox
     let hitbox = new Hitbox(randomX, randomY, rectangleWidth, rectangleHeight, 'green', ctx);
     HitBoxArray.push(hitbox);
+
+    //run update() and draw() for each array element
+    for (let i = 0; i < HitBoxArray.length; i++){
+		HitBoxArray[i].update();
+		HitBoxArray[i].drawHitBox();		
+	}
 }
 
 
@@ -150,10 +155,13 @@ function init(){
 //===========================================
 //                  RUN
 //===========================================
+
+
+
+// start body detecting 
 bodies.start();
 
+//start camera
+drawCameraIntoCanvas();
+
 init();
-
-
-// draw video and body parts into canvas continously 
-Hitbox.drawCameraIntoCanvas();
