@@ -71,9 +71,6 @@ class Hitbox{
             this._ctx.restore();
 		}
     }
-
-
-
 }
 
 //==============================================
@@ -130,7 +127,7 @@ function drawCameraIntoCanvas() {
         ctx.fill();
     }
     //start camera
-requestAnimationFrame(drawCameraIntoCanvas());
+    requestAnimationFrame(drawCameraIntoCanvas());
 }
 
 function init(){
