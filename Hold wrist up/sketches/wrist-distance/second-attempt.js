@@ -12,17 +12,8 @@ let HitBoxArray = [];
 let rectangleWidth = 100; 
 let rectangleHeight = 100;
 
-
-// get right/left wrist
-//let body;
-
-//circle's X,Y and radius
-let randomX = Math.random() * Math.floor(640);
-let randomY = Math.random() * Math.floor(480);
-let radius = 10;
-
 //distance between wrists
-let leftWrist, rightWrist,body;
+let body;
 
      
 //============================================
@@ -46,14 +37,14 @@ class Hitbox{
     }
 
     update(){
-        var leftWristX = wrists.leftWristX;
-        var leftWristY = wrists.leftWristY;
-        var rightWristX = wrists.rightWristX;
-        var rightWristY = wrists.rightWristY;
+        //var leftWristX = wrists.leftWristX;
+        //var leftWristY = wrists.leftWristY;
+        //var rightWristX = wrists.rightWristX;
+        //var rightWristY = wrists.rightWristY;
         if(//left wrist
-            (this._x < leftWristX) || (leftWristX < (this._x + this._width)) || (this._y < leftWristY) || (leftWristY < (this._y + this._height)) ||
+            (this._x < wrists.leftWristX) || (wrists.leftWristX < (this._x + this._width)) || (this._y < wrists.leftWristY) || (wrists.leftWristY < (this._y + this._height)) ||
             //right wrist
-            (this._x < rightWristX) || (rightWristX < (this._x + this._width)) || (this._y < rightWristY) || (rightWristY < (this._y + this._height))) {
+            (this._x < wrists.rightWristX) || (wrists.rightWristX < (this._x + this._width)) || (this._y < wrists.rightWristY) || (wrists.rightWristY < (this._y + this._height))) {
                 this._isOver = true;
          } else {
              this._isOver = false;
@@ -77,6 +68,7 @@ class Hitbox{
 			ctx.fillStyle = 'green';
             ctx.fill(hitbox);
             setTimeout(this.drawHitBox, 2000);
+            this._ctx.restore();
 		}
     }
 
@@ -98,10 +90,10 @@ const bodies = new BodyStream ({
 
 
 //save function for event listener onto a variable.
-var wrists = (e) => {
+let wrists = (e) => {
     body = e.detail.getBodyAt(0)
-    leftWrist = body.getBodyPart(bodyParts.leftWrist);
-    rightWrist = body.getBodyPart(bodyParts.rightWrist);
+    const leftWrist = body.getBodyPart(bodyParts.leftWrist);
+    const rightWrist = body.getBodyPart(bodyParts.rightWrist);
     document.getElementById('output').innerText = `Left Wrist: ${Math.round(leftWrist.position.x)}, ${Math.round(leftWrist.position.y)}` + ` Right Wrist: ${Math.round(rightWrist.position.x)}, ${Math.round(rightWrist.position.y)}`;
 
   //this function will also be used to call specific variables elsewhere in the code  
@@ -122,32 +114,40 @@ function drawCameraIntoCanvas() {
     ctx.drawImage(video, 0, 0, video.width, video.height);
     
     if (body) {
+        //circle's radius
+        let radius = 10;
 
         // draw left wrist
         ctx.beginPath();
-        ctx.arc(leftWrist.position.x, leftWrist.position.y, radius, 0, 2 * Math.PI);
+        ctx.arc(wrists.leftWristX, wrists.leftWristY, radius, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
 
         // draw right wrist
         ctx.beginPath();
-        ctx.arc(rightWrist.position.x, rightWrist.position.y, radius, 0, 2 * Math.PI);
+        ctx.arc(wrists.rightWristX, wrists.rightWristY, radius, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
     }
-    requestAnimationFrame(drawCameraIntoCanvas());
+    //start camera
+requestAnimationFrame(drawCameraIntoCanvas());
 }
 
 function init(){
+    let randomX = Math.random() * Math.floor(video.width);
+    let randomY = Math.random() * Math.floor(video.height);
+
     //create a hitbox
-    let hitbox = new Hitbox(randomX, randomY, rectangleWidth, rectangleHeight, 'green', ctx);
+    let hitbox = new Hitbox(randomX, randomY, rectangleWidth, rectangleHeight, 'purple', ctx);
     HitBoxArray.push(hitbox);
+    HitBoxArray[0].update();
+	HitBoxArray[0].drawHitBox();
 
     //run update() and draw() for each array element
-    for (let i = 0; i < HitBoxArray.length; i++){
+    /*for (let i = 0; i < HitBoxArray.length; i++){
 		HitBoxArray[i].update();
 		HitBoxArray[i].drawHitBox();		
-	}
+	}*/
 }
 
 
@@ -161,7 +161,6 @@ function init(){
 // start body detecting 
 bodies.start();
 
-//start camera
 drawCameraIntoCanvas();
 
 init();
