@@ -3,13 +3,15 @@
 
 /* ----- setup ------ */
 
+let speed = [];
+
 // sets up a bodystream with configuration object
 const bodies = new BodyStream ({
     posenet: posenet,
     architecture: modelArchitecture.MobileNetV1, 
     detectionType: detectionType.singleBody, 
     videoElement: document.getElementById('video'), 
-    samplingRate: 250})
+    samplingRate: 400})
   
 
 
@@ -19,13 +21,15 @@ let distance
 
 bodies.addEventListener('bodiesDetected', (e) => {
   body = e.detail.bodies.getBodyAt(0)
-  distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist))
+  distance = Math.round(body.getDistanceBetweenBodyParts(bodyParts.rightKnee, bodyParts.rightWrist))
+  speed.push(distance);
   document.getElementById('output').innerText = `Distance between wrists: ${distance}`
-  body.getDistanceBetweenBodyParts(bodyParts.leftWrist, bodyParts.rightWrist)
-  
-
-
+  body.getDistanceBetweenBodyParts(bodyParts.rightKnee, bodyParts.rightWrist)
+  if (speed.length > 6){
+    speed.pop();
+  }
 })
+
 //Working-------------------
 let prevValueIsWithinDistance = false;
 let currentValueIsWithinDistance = false;
@@ -34,7 +38,7 @@ var audio = new Audio('ding.wav');
 
 window.setInterval( function(){
   
-  currentValueIsWithinDistance =(distance > 20 && distance < 100 )
+  currentValueIsWithinDistance = (distance > 20 && distance < 100)
   
   if(currentValueIsWithinDistance && prevValueIsWithinDistance){
       audio.play()
@@ -55,20 +59,26 @@ function drawCameraIntoCanvas() {
     
     if (body) {
         // draw circle for left and right wrist
-        const leftWrist = body.getBodyPart(bodyParts.leftWrist)
         const rightWrist = body.getBodyPart(bodyParts.rightWrist)
+        const rightAnkle = body.getBodyPart(bodyParts.rightKnee)
+        const leftEye = body.getBodyPart(bodyParts.leftEye)
+        const rightEye = body.getBodyPart(bodyParts.rightEye)
 
         // draw left wrist
         ctx.beginPath();
-        ctx.arc(leftWrist.position.x, leftWrist.position.y, 10, 0, 2 * Math.PI);
+        ctx.arc(rightWrist.position.x, rightWrist.position.y, 10, 0, 2 * Math.PI);
         ctx.fillStyle = 'white'
         ctx.fill()
 
         // draw right wrist
         ctx.beginPath();
-        ctx.arc(rightWrist.position.x, rightWrist.position.y, 10, 0, 2 * Math.PI);
+        ctx.arc(rightAnkle.position.x, rightAnkle.position.y, 10, 0, 2 * Math.PI);
         ctx.fillStyle = 'white'
         ctx.fill()
+
+        // draw right eye
+        //ctx.beginPath();
+        //ctx.arc(rightEye.position.x, rightA);
     }
     requestAnimationFrame(drawCameraIntoCanvas)
 }
